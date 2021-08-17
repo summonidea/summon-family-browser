@@ -5,19 +5,30 @@
     <title>Summon Family Browser</title>
 </head>
 
-<body>
+<body style="display: flex">
 
-    <h1>Summon Family Browser</h1>
+    <!-- <h1>Summon Family Browser</h1> -->
     <!-- INSERT FAMILY LIST BELOW -->
-    <div id="familyCatalog">
-
+    <div id="familyCatalog" style="margin-right: 20px;">
     </div>
     <!-- <h2 id="familyName">Family 1</h2>
     <p id="FamilyDescription"></p> -->
 
-    <p id="demo"></p>
+    <div id="family-types" style="margin-right: 20px;">
+
+    </div>
+
+    <table id="family-data" border="1">
+    </table>
 
     <script type="module" src="./js/script-detail.js"></script>
 </body>
 
 </html>
+
+<style>
+    table, th, td {
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+    </style>
