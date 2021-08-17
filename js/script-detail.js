@@ -32,8 +32,8 @@ async function renderFamilyInfo() {
             container.appendChild(familyDiv)
             familyDiv.appendChild(renderFamName)
             familyDiv.appendChild(render3d)
-            document.getElementById("famDiv" + index).style.margin = '50px 10px 20px 30px';
             document.getElementById(renderFamName.id).innerHTML = family.family_name
+            document.getElementById("famDiv" + index).style.margin = '10px 10px 10px 10px';
             
             renderFamName.addEventListener("click", (event) => {
                 location.href = "/familydetail.html?id=" + index
