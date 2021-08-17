@@ -34,7 +34,7 @@ async function renderFamilyInfo() {
             document.getElementById(renderFamName.id).innerHTML = family.family_name
             
             renderFamName.addEventListener("click", (event) => {
-                location.href = "/familydetail.html?id=" + index
+                location.href = "familydetail.html?id=" + index
             }) 
         });
 
