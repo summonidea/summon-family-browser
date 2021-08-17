@@ -23,7 +23,8 @@ async function renderFamilyInfo() {
             let familyDiv = document.createElement("div")
             let renderFamName = document.createElement("h2")
             let renderImage = document.createElement("img")
-            renderImage.src = "./../src/output_families/" + family.family_name + " - 3D View - {3D}.png"
+            // renderImage.src = "./../src/output_families/" + family.family_name + " - 3D View - {3D}.png"
+            renderImage.src = "src/output_families/" + family.family_name + " - 3D View - {3D}.png"
             familyDiv.id = "famDiv" + index
             renderFamName.id = "famName" + index
             renderImage.id = "famImg" + index
