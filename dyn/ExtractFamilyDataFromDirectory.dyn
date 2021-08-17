@@ -1,0 +1,1006 @@
+{
+  "Uuid": "3c9d0464-8643-5ffe-96e5-ab1769818209",
+  "IsCustomNode": false,
+  "Description": "",
+  "Name": "ExtractFamilyDataFromDirectory",
+  "ElementResolver": {
+    "ResolutionMap": {}
+  },
+  "Inputs": [
+    {
+      "Id": "1a049fd025df4ccaa93b0510d5b38267",
+      "Name": "INPUT RFA FAMILIES",
+      "Type": "string",
+      "Value": "D:\\Xavier\\SUMMONIDEA\\BLOGGING\\summon-family-browser\\src\\input_families",
+      "Description": "Allows you to select a directory on the system to get its path"
+    },
+    {
+      "Id": "c92032067dcb43b586ffea52034625ac",
+      "Name": "OUTPUT FBX FAMILIES",
+      "Type": "string",
+      "Value": "D:\\Xavier\\SUMMONIDEA\\BLOGGING\\summon-family-browser\\src\\output_families",
+      "Description": "Allows you to select a directory on the system to get its path"
+    },
+    {
+      "Id": "f458cfb369014a6681fbeb1711550c7a",
+      "Name": "OUTPUT JSON",
+      "Type": "string",
+      "Value": "D:\\Xavier\\SUMMONIDEA\\BLOGGING\\summon-family-browser\\src",
+      "Description": "Allows you to select a directory on the system to get its path"
+    }
+  ],
+  "Outputs": [],
+  "Nodes": [
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\nclr.AddReference('ProtoGeometry')\nfrom Autodesk.DesignScript.Geometry import *\n\n# Import DocumentManager and TransactionManager\nclr.AddReference(\"RevitServices\")\nimport RevitServices\nfrom RevitServices.Persistence import DocumentManager\nfrom RevitServices.Transactions import TransactionManager\n\n# Import python library\nimport sys\npyt_path = r'C:\\Program Files (x86)\\IronPython 2.7\\Lib'\nsys.path.append(pyt_path)\nimport os\n\ndoc = DocumentManager.Instance.CurrentDBDocument\nuiapp = DocumentManager.Instance.CurrentUIApplication\napp = uiapp.Application\n\ndef flatten(*args):\n\tfor x in args:\n\t\tif hasattr(x, '__iter__'):\n\t\t\tfor y in flatten(*x): yield y\n\t\telse: yield x\n\n\n#Credits Archi-lab\ndef checkParameter(param):\n\tfor p in param:\n\t\tinternal = p.Definition\n\t\tif internal.BuiltInParameter != BuiltInParameter.INVALID:\n\t\t\treturn p\n\treturn param[0]\n\ndef GetParaValue(params):\n\tparavalue = []\n\tp = checkParameter(params)\n\tif p.StorageType == StorageType.String:\n\t\tparavalue.append(p.AsString())\n\telif p.StorageType == StorageType.ElementId:\n\t\tparavalue.append(p.AsValueString())\n\telif p.StorageType == StorageType.Integer:\n\t\tparavalue.append(p.AsValueString())\n\telse:\n\t\tparavalue.append(None)\n\treturn paravalue\n\n# Import RevitAPI\nclr.AddReference(\"RevitAPI\")\nimport Autodesk\nfrom Autodesk.Revit.DB import *\n\nclr.AddReference(\"RevitNodes\")\nimport Revit\nclr.ImportExtensions(Revit.Elements)\n\nif isinstance(IN[0], list):\n\tfiles = IN[0]\nelse:\n\tfiles = [IN[0]]\n\nversion = \"v\" + app.VersionNumber\n\noptions = OpenOptions()\noptions.DetachFromCentralOption = DetachFromCentralOption.DetachAndPreserveWorksets\n\nworksharingOptions = WorksharingSaveAsOptions()\nworksharingOptions.SaveAsCentral = True\n\nSaveOptions = SaveAsOptions()\nSaveOptions.SetWorksharingOptions(worksharingOptions)\nSaveOptions.OverwriteExistingFile = True\n\nLinkNames, newdocpath, results, unloadstatus, linkParas = [], [], [], [], []\n\n#revitlinktypes=list()\n#linkcollector=FilteredElementCollector(doc).OfClass(RevitLinkInstance)\n#revitlinktypes=[]\nTransactionManager.Instance.ForceCloseTransaction()\n\ntry:\n\tfor file in files:\n\t\tmodelpath = FilePath(file)\n\t\tnewdoc = app.OpenDocumentFile(modelpath,options)\n\t\n\t\tcollector = Autodesk.Revit.DB.FilteredElementCollector(newdoc)\n\t\tlinkTypes = UnwrapElement(collector.OfClass(Autodesk.Revit.DB.RevitLinkType))\n\t\tfor linkType in flatten(linkTypes):\n\t\t\tlinkPara = linkType.GetParameters(\"Type Name\")\n\t\t\tlinkParavalue = GetParaValue(linkPara)\n\t\t\ttry:\n\t\t\t\tlinkType.Unload(None)\n\t\t\t\tunloadstatus.append(True)\n\t\t\texcept:\n\t\t\t\tunloadstatus.append(False)\n\t\t\tresults = [unloadstatus]\nexcept Exception,e:\t\n\t\n\t\n\tnewfile = file\n\tnewdoc.SaveAs(newfile,SaveOptions)\n\tnewdoc.Close(False)\n\nOUT = 0",
+      "VariableInputPorts": true,
+      "Id": "b8c28a0cf8fb4e919a5076d8667f01a0",
+      "Inputs": [
+        {
+          "Id": "f750a66443f442e18e4b35f156ffe5ac",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5a28192d0fc44d6a92809da31d3d03e0",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Directory, CoreNodeModels",
+      "HintPath": "D:\\Xavier\\SUMMONIDEA\\BLOGGING\\summon-family-browser\\src\\input_families",
+      "InputValue": "D:\\Xavier\\SUMMONIDEA\\BLOGGING\\summon-family-browser\\src\\input_families",
+      "NodeType": "ExtensionNode",
+      "Id": "1a049fd025df4ccaa93b0510d5b38267",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "0474f2c40623417996dae9e89a047d8c",
+          "Name": "",
+          "Description": "Directory",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a directory on the system to get its path"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.IO.FileSystem.GetDirectoryContents@var,string,bool",
+      "Id": "f88c1dc6eb77448baa25de9ef6a59441",
+      "Inputs": [
+        {
+          "Id": "f012edc734df4881bf9b9aedf747b3b5",
+          "Name": "directory",
+          "Description": "var",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "a11426e9fc8149958cefb0196b3f26a2",
+          "Name": "searchString",
+          "Description": "string\nDefault value : \"*.*\"",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "052ca545792740cfac154e188e30d21f",
+          "Name": "includeSubdirectories",
+          "Description": "bool\nDefault value : false",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "a2b59ef23a2943f59d62e781a7321565",
+          "Name": "files",
+          "Description": "var",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "08df51e80ddd4d3382d56842313591de",
+          "Name": "directories",
+          "Description": "var",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "FileSystem.GetDirectoryContents (directory: var, searchString: string = \"*.*\", includeSubdirectories: bool = false): var[]..[]"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.DirectoryObject, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "d4462bbf838843eebaa0c0935aff01ee",
+      "Inputs": [
+        {
+          "Id": "49e622aa5b70486f97ccc4ada93e1ff1",
+          "Name": "path",
+          "Description": "Path to the directory.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5daca0a59ba04736a02ac264bc20828a",
+          "Name": "directory",
+          "Description": "Directory object.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Creates a directory object from a path"
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\nclr.AddReference('ProtoGeometry')\nfrom Autodesk.DesignScript.Geometry import *\n\n# Import RevitAPI\nclr.AddReference(\"RevitAPI\")\nimport Autodesk\nfrom Autodesk.Revit.DB import *\nfrom Autodesk.Revit.Attributes import*\n\nclr.AddReference(\"RevitAPIUI\")\nfrom  Autodesk.Revit.UI import *\n\n# Import DocumentManager and TransactionManager\nclr.AddReference(\"RevitServices\")\nimport RevitServices\nfrom RevitServices.Persistence import DocumentManager\nfrom RevitServices.Transactions import TransactionManager\n\nfrom System.Collections.Generic import *\n\n# Import Revit Nodes\nclr.AddReference(\"RevitNodes\")\nimport Revit\nclr.ImportExtensions(Revit.Elements)\nclr.ImportExtensions(Revit.GeometryConversion)\n\n# Import python library\nimport sys\npyt_path = r'C:\\Program Files (x86)\\IronPython 2.7\\Lib'\nsys.path.append(pyt_path)\nimport os\nimport json\n\ntOptions = TransactWithCentralOptions()\n\ndoc = DocumentManager.Instance.CurrentDBDocument\nuiapp = DocumentManager.Instance.CurrentUIApplication\napp = uiapp.Application\n#uidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument\n\nif isinstance(IN[0], list):\n\tfile = IN[0]\n\tfilename = IN[2]\nelse:\n\tfile = [IN[0]]\n\tfilename = [IN[2]]\n\nexportPath = IN[1]\njsonexportPath = IN[3]\n\nnewdocpath = []\ntypes, params, paramValues = [], [], []\n\nopenConfig = WorksetConfiguration(WorksetConfigurationOption.OpenAllWorksets)\noOptions = OpenOptions()\noOptions.DetachFromCentralOption = DetachFromCentralOption.DetachAndDiscardWorksets\noOptions.Audit = False\noOptions.SetOpenWorksetsConfiguration(openConfig)\n\nworksharingOptions = WorksharingSaveAsOptions()\nworksharingOptions.SaveAsCentral = False\n\nSaveOptions = SaveAsOptions()\nSaveOptions.MaximumBackups = 1\nSaveOptions.OverwriteExistingFile = True\n\nfamLib = {}\nfamLib['families'] = []\n\n#TransactionManager.Instance.ForceCloseTransaction()\n\ntry:\n\tfor files,filenames in zip(file,filename):\n\t\tmodelpath = FilePath(files)\n\t\tnewdoc = app.OpenDocumentFile(modelpath, oOptions)\n\t\t\n\n\t\t\t\t\n\t\t\n\t\tcollector = Autodesk.Revit.DB.FilteredElementCollector(newdoc)\n\t\tdocViews = collector.OfClass(Autodesk.Revit.DB.View3D).ToElements()\n\t\n\t\tviewSetExport = ViewSet()\n\t\tviewSetExport.Insert(docViews[0])\n\t\texportFBX = newdoc.Export(exportPath, filenames, viewSetExport, FBXExportOptions())\n\t\t\n\t\t#viewListExport = List[Autodesk.Revit.DB.ElementId]()\n\t\t#viewListExport.Add(docViews[0].Id)\n\t\t#exportDWG = newdoc.Export(newpath, filenames, viewListExport, DWGExportOptions())\n\t\tfamManager = newdoc.FamilyManager\n\t\t\n\t\tfamParams = newdoc.FamilyManager.GetParameters()\n\t\tparams.append([p.Definition.Name for p in famParams])\n\t\t\n\t\tfamTypes = newdoc.FamilyManager.Types\n\t\ttypes.append(famTypes)\n\t\t\n\t\tfamTypeParamValues = []\n\t\t\n\t\tfamLib['families'].append({\n\t\t\t'family_path': files,\n\t\t\t'family_name': newdoc.Title,\n\t\t\t'types': [],\n\t\t\t\n\t\t})\t\t\n\n\t\t\n\t\tfor famType in famTypes:\n\t\t\ttp = []\n\t\t\tfamLib['families'][-1]['types'].append({\n\t\t\t\t'type_name': famType.Name,\n\t\t\t\t'parameters': [],\n\t\t\t})\n\t\t\t#fam = famLib['families'][-1]\n\t\t\t#fam['types'].append(famType.Name)\n\t\t\t\n\t\t\tfor famParam in famParams:\n\t\t\t\tif famParam.StorageType == StorageType.Double:\n\t\t\t\t\ttp.append(famType.AsDouble(famParam))\n\t\t\t\t\t#famLib['families'][-1]['types'][-1]['parameters'][-1][famParam.Definition.Name] = famType.AsDouble(famParam)\n\t\t\t\t\tfamLib['families'][-1]['types'][-1]['parameters'].append({\n\t\t\t\t\t\t'parameter_name': famParam.Definition.Name,\n\t\t\t\t\t\t'parameter_group': LabelUtils.GetLabelFor(famParam.Definition.ParameterGroup),\n\t\t\t\t\t\t'parameter_type': LabelUtils.GetLabelFor(famParam.Definition.ParameterType),\n\t\t\t\t\t\t'parameter_formula': famParam.Formula,\n\t\t\t\t\t\t'is_instance': famParam.IsInstance,\n\t\t\t\t\t\t'is_shared': famParam.IsShared,\n\t\t\t\t\t\t'is_reporting': famParam.IsReporting,\n\t\t\t\t\t\t'display_units': LabelUtils.GetLabelFor(famParam.DisplayUnitType),\n\t\t\t\t\t\t\n\t\t\t\t\t\t'value': famType.AsDouble(famParam)\n\t\t\t\t\t})\n\t\t\t\t\tcontinue\n\t\t\t\telif famParam.StorageType == StorageType.ElementId:\n\t\t\t\t\ttp.append(famType.AsElementId(famParam))\n\t\t\t\t\tfamLib['families'][-1]['types'][-1]['parameters'].append({\n\t\t\t\t\t\t'parameter_name': famParam.Definition.Name,\n\t\t\t\t\t\t'parameter_group': LabelUtils.GetLabelFor(famParam.Definition.ParameterGroup),\n\t\t\t\t\t\t'parameter_type': LabelUtils.GetLabelFor(famParam.Definition.ParameterType),\n\t\t\t\t\t\t'parameter_formula': famParam.Formula,\n\t\t\t\t\t\t'is_instance': famParam.IsInstance,\n\t\t\t\t\t\t'is_shared': famParam.IsShared,\n\t\t\t\t\t\t'is_reporting': famParam.IsReporting,\n\t\t\t\t\t\t#'display_units': famParam.DisplayUnitType.ToString(),\n\t\t\t\t\t\t\n\t\t\t\t\t\t'value': famType.AsElementId(famParam).ToString()\n\t\t\t\t\t})\n\t\t\t\t\tcontinue\n\t\t\t\telif famParam.StorageType == StorageType.Integer:\n\t\t\t\t\ttp.append(famType.AsInteger(famParam))\n\t\t\t\t\tfamLib['families'][-1]['types'][-1]['parameters'].append({\n\t\t\t\t\t\t'parameter_name': famParam.Definition.Name,\n\t\t\t\t\t\t'parameter_group': LabelUtils.GetLabelFor(famParam.Definition.ParameterGroup),\n\t\t\t\t\t\t'parameter_type': LabelUtils.GetLabelFor(famParam.Definition.ParameterType),\n\t\t\t\t\t\t'parameter_formula': famParam.Formula,\n\t\t\t\t\t\t'is_instance': famParam.IsInstance,\n\t\t\t\t\t\t'is_shared': famParam.IsShared,\n\t\t\t\t\t\t'is_reporting': famParam.IsReporting,\n\t\t\t\t\t\t#'display_units': famParam.DisplayUnitType.ToString(),\n\t\t\t\t\t\t\n\t\t\t\t\t\t'value': famType.AsInteger(famParam)\n\t\t\t\t\t})\n\t\t\t\t\tcontinue\n\t\t\t\telif famParam.StorageType == StorageType.String:\n\t\t\t\t\ttp.append(famType.AsString(famParam))\n\t\t\t\t\tfamLib['families'][-1]['types'][-1]['parameters'].append({\n\t\t\t\t\t\t'parameter_name': famParam.Definition.Name,\n\t\t\t\t\t\t'parameter_group': LabelUtils.GetLabelFor(famParam.Definition.ParameterGroup),\n\t\t\t\t\t\t'parameter_type': LabelUtils.GetLabelFor(famParam.Definition.ParameterType),\n\t\t\t\t\t\t'parameter_formula': famParam.Formula,\n\t\t\t\t\t\t'is_instance': famParam.IsInstance,\n\t\t\t\t\t\t'is_shared': famParam.IsShared,\n\t\t\t\t\t\t'is_reporting': famParam.IsReporting,\n\t\t\t\t\t\t#'display_units': famParam.DisplayUnitType.ToString(),\n\t\t\t\t\t\t\n\t\t\t\t\t\t'value': famType.AsString(famParam)\n\t\t\t\t\t})\n\t\t\t\t\tcontinue\n\t\t\tfamTypeParamValues.append(tp)\n\t\t\n\t\tparamValues.append(famTypeParamValues)\t\t\n\t\t\n\t\tnewFamPath = exportPath + \"\\\\\" + str(filenames)\n\t\tnewdocpath.append(newFamPath)\n\t\t\n\t\t#newdoc.SaveAs(newfilepath,SaveOptions)\t\n\t\tnewdoc.Close(False)\n\t#with open('D:\\data.json', 'w') as outfile:\n\twith open(jsonexportPath + '\\\\family_data.json', 'w') as outfile:\n\t\tjson.dump(famLib, outfile)\n\t\t\n\tOUT = [newdocpath, types, params, paramValues]\nexcept Exception, e:\n\tOUT = str(e)",
+      "VariableInputPorts": true,
+      "Id": "15d2a70d9d0b48ada231f3bb30c7fd43",
+      "Inputs": [
+        {
+          "Id": "175995ec1fbb44c6b0dae29d17c11b4d",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "0a180d67aa444672996389536a65726f",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "ffe0520a7b934fd7b77aebb32905a801",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "d781f6b12b444dc5b13672eebb7a4010",
+          "Name": "IN[3]",
+          "Description": "Input #3",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "fe42a78312ae429bbfc31596f31672c5",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.FromObject, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "dc7204c6581e43b49eab2b0eba9b961f",
+      "Inputs": [
+        {
+          "Id": "1c4ed22239f04e75bc8da14dabd85313",
+          "Name": "obj",
+          "Description": "Object to be serialized",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "4c6bcc9c59c3404e9f69d3db5abc4677",
+          "Name": "str",
+          "Description": "Result of math computation",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Convert an object to a string representation."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.List.Flatten@var[]..[],int",
+      "Id": "ac173191fdbd423f928732b311fba572",
+      "Inputs": [
+        {
+          "Id": "c1884b03c54446c28e868c186f6cfcc4",
+          "Name": "list",
+          "Description": "List to flatten.\n\nvar[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "bc7e132386c74c2eb6162ad62b1e6a99",
+          "Name": "amt",
+          "Description": "Layers of nesting to remove.\n\nint\nDefault value : -1",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "5d86c6cb473440bba57a27422f33c7ec",
+          "Name": "var[]..[]",
+          "Description": "var[]..[]",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Flattens a nested list of lists by a certain amount.\n\nList.Flatten (list: var[]..[], amt: int = -1): var[]..[]"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "DSCore.IO.FileSystem.FileName@string,bool",
+      "Id": "21f125a2d8dd4410ba85eea6d17185b4",
+      "Inputs": [
+        {
+          "Id": "65bf9109ddb144cd90624cd8454f6f7d",
+          "Name": "path",
+          "Description": "Path to get the file name of.\n\nstring",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "c0697c330a874b52ad3ecf6beecb6a9e",
+          "Name": "withExtension",
+          "Description": "Determines whether or not the extension is included in the result, defaults to true.\n\nbool\nDefault value : true",
+          "UsingDefaultValue": true,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "f2c368aa58d7486493b3ebc70b446a40",
+          "Name": "string",
+          "Description": "string",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Returns the file name of a file path.\n\nFileSystem.FileName (path: string, withExtension: bool = true): string"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.BoolSelector, CoreNodeModels",
+      "NodeType": "BooleanInputNode",
+      "InputValue": true,
+      "Id": "99e0e10a3eeb4cd897318941e7be0822",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "ff3a425a83b84fa480c9d0ba68a99c7a",
+          "Name": "",
+          "Description": "Boolean",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Selection between a true and false."
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\nclr.AddReference('ProtoGeometry')\nfrom Autodesk.DesignScript.Geometry import *\n\n# Import RevitAPI\nclr.AddReference(\"RevitAPI\")\nimport Autodesk\nfrom Autodesk.Revit.DB import *\nfrom Autodesk.Revit.Attributes import*\n\nimport clr\nclr.AddReference(\"RevitAPIUI\")\nfrom  Autodesk.Revit.UI import *\n\n# Import DocumentManager and TransactionManager\nclr.AddReference(\"RevitServices\")\nimport RevitServices\nfrom RevitServices.Persistence import DocumentManager\nfrom RevitServices.Transactions import TransactionManager\n\nfrom System.Collections.Generic import *\n\n# Import Revit Nodes\nclr.AddReference(\"RevitNodes\")\nimport Revit\nclr.ImportExtensions(Revit.Elements)\nclr.ImportExtensions(Revit.GeometryConversion)\n\n# Import python library\nimport sys\npyt_path = r'C:\\Program Files (x86)\\IronPython 2.7\\Lib'\nsys.path.append(pyt_path)\nimport os\n\ntOptions = TransactWithCentralOptions()\n\ndoc = DocumentManager.Instance.CurrentDBDocument\nuiapp = DocumentManager.Instance.CurrentUIApplication\napp = uiapp.Application\nuidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument\n\ndef flatten(*args):\n\tfor x in args:\n\t\tif hasattr(x, '__iter__'):\n\t\t\tfor y in flatten(*x): yield y\n\t\telse: yield x\n\n\n#Credits Archi-lab\ndef checkParameter(param):\n\tfor p in param:\n\t\tinternal = p.Definition\n\t\tif internal.BuiltInParameter != BuiltInParameter.INVALID:\n\t\t\treturn p\n\treturn param[0]\n\ndef GetParaValue(params):\n\tparavalue = []\n\tp = checkParameter(params)\n\tif p.StorageType == StorageType.String:\n\t\tparavalue.append(p.AsString())\n\telif p.StorageType == StorageType.ElementId:\n\t\tparavalue.append(p.AsValueString())\n\telif p.StorageType == StorageType.Integer:\n\t\tparavalue.append(p.AsValueString())\n\telse:\n\t\tparavalue.append(None)\n\treturn paravalue\n\nif isinstance(IN[0], list):\n\tfile = IN[0]\n\tfilename = IN[2]\nelse:\n\tfile = [IN[0]]\n\tfilename = [IN[2]]\n\nnewpath = IN[1]\nLinkNames, newdocpath, results, unloadstatus, linkParas = [], [], [], [], []\n\nopenConfig = WorksetConfiguration(WorksetConfigurationOption.OpenAllWorksets)\noOptions = OpenOptions()\noOptions.DetachFromCentralOption = DetachFromCentralOption.DetachAndDiscardWorksets\noOptions.Audit = False\noOptions.SetOpenWorksetsConfiguration(openConfig)\n\nworksharingOptions = WorksharingSaveAsOptions()\nworksharingOptions.SaveAsCentral = False\n\nSaveOptions = SaveAsOptions()\nSaveOptions.MaximumBackups = 1\n#SaveOptions.SetWorksharingOptions(worksharingOptions)\nSaveOptions.OverwriteExistingFile = True\n\n#rOptions = RelinquishOptions(False)\n#rOptions.StandardWorksets = True\n#rOptions.ViewWorksets = True\n#rOptions.FamilyWorksets = True\n#rOptions.UserWorksets = True\n#rOptions.CheckedOutElements = True\n\n#sOptions = SynchronizeWithCentralOptions()\n#sOptions.SetRelinquishOptions(rOptions)\n#sOptions.Compact = True\n#sOptions.SaveLocalBefore = True\n#sOptions.SaveLocalAfter = True\n\nTransactionManager.Instance.ForceCloseTransaction()\n\ntry:\n\tfor files,filenames in zip(file,filename):\n\t\tmodelpath = FilePath(files)\n\t\tnewdoc = app.OpenDocumentFile(modelpath,oOptions)\n\t\tcollector = Autodesk.Revit.DB.FilteredElementCollector(newdoc)\n\t\tlinkTypes = UnwrapElement(collector.OfClass(Autodesk.Revit.DB.RevitLinkType))\n\t\tfor linkType in flatten(linkTypes):\n\t\t\tlinkPara = linkType.GetParameters(\"Type Name\")\n\t\t\tlinkParavalue = GetParaValue(linkPara)\n\t\t\ttry:\n\t\t\t\tlinkType.Unload(None)\n\t\t\t\tunloadstatus.append(True)\n\t\t\texcept Exception,e:\n\t\t\t\tunloadstatus.append(str(e))\n\t\t\tresults = [unloadstatus]\t\t\n\t\tnewfilepath = newpath + \"\\\\\" + str(filenames)\n\t\tnewdoc.SaveAs(newfilepath,SaveOptions)\t\t\t\n\t\t#newdoc.SynchronizeWithCentral(tOptions,sOptions)\n\t\tnewdoc.Close(True)\n\t\tnewdocpath.append(newfilepath) \n\t\tOUT = [newdocpath , results]\nexcept Exception,e:\n\tOUT = str(e)",
+      "VariableInputPorts": true,
+      "Id": "6937b6998e154a5f8a259154ad8d8e8f",
+      "Inputs": [
+        {
+          "Id": "1a39829fbe6c4f8d856ea074f26aa43f",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "ca65393606494bf49f4ccfcd2ef6f841",
+          "Name": "IN[1]",
+          "Description": "Input #1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        },
+        {
+          "Id": "7bea253f1f1243f99d12c4cec4e700fe",
+          "Name": "IN[2]",
+          "Description": "Input #2",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "3c74232c1f5745d2bd59c8b1197d34a3",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "\"*.rfa\";",
+      "Id": "ded51fb1a93940d08a5cd7d7c8b6d5d8",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "428062d98db34e438608ed9ead521881",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "7b605fcbcde1428a8023b155680710ed",
+      "Inputs": [
+        {
+          "Id": "7467835857344da188377c6e9ee9e56e",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "09075b3ae06a4a84a2d9704486f71d65",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Directory, CoreNodeModels",
+      "HintPath": "D:\\Xavier\\SUMMONIDEA\\BLOGGING\\summon-family-browser\\src\\output_families",
+      "InputValue": "D:\\Xavier\\SUMMONIDEA\\BLOGGING\\summon-family-browser\\src\\output_families",
+      "NodeType": "ExtensionNode",
+      "Id": "c92032067dcb43b586ffea52034625ac",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "433dd75e6c7a4429aed3db48407d0c57",
+          "Name": "",
+          "Description": "Directory",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a directory on the system to get its path"
+    },
+    {
+      "ConcreteType": "PythonNodeModels.PythonNode, PythonNodeModels",
+      "NodeType": "PythonScriptNode",
+      "Code": "import clr\r\nclr.AddReference('ProtoGeometry')\r\nfrom Autodesk.DesignScript.Geometry import *\r\n\r\n# Import RevitAPI\r\nclr.AddReference(\"RevitAPI\")\r\nimport Autodesk\r\nfrom Autodesk.Revit.DB import *\r\nfrom Autodesk.Revit.Attributes import*\r\n\r\nimport clr\r\nclr.AddReference(\"RevitAPIUI\")\r\nfrom  Autodesk.Revit.UI import *\r\n\r\n# Import DocumentManager and TransactionManager\r\nclr.AddReference(\"RevitServices\")\r\nimport RevitServices\r\nfrom RevitServices.Persistence import DocumentManager\r\nfrom RevitServices.Transactions import TransactionManager\r\n\r\nfrom System.Collections.Generic import *\r\n\r\n# Import Revit Nodes\r\nclr.AddReference(\"RevitNodes\")\r\nimport Revit\r\nclr.ImportExtensions(Revit.Elements)\r\nclr.ImportExtensions(Revit.GeometryConversion)\r\n\r\n# Import python library\r\nimport sys\r\npyt_path = r'C:\\Program Files (x86)\\IronPython 2.7\\Lib'\r\nsys.path.append(pyt_path)\r\nimport os\r\n\r\ntOptions = TransactWithCentralOptions()\r\n\r\ndoc = DocumentManager.Instance.CurrentDBDocument\r\nuiapp = DocumentManager.Instance.CurrentUIApplication\r\napp = uiapp.Application\r\nuidoc = DocumentManager.Instance.CurrentUIApplication.ActiveUIDocument\r\n\r\nallViews = []\r\ncollector = Autodesk.Revit.DB.FilteredElementCollector(doc)\r\nviewCollector = collector.OfClass(View).ToElements()\r\nallViews.append(viewCollector)\r\n\r\nparams = doc.FamilyManager.GetParameters()\r\npDef = []\r\nfParam = []\r\nfor p in params:\r\n\tpDef.append(p.Definition.Name)\r\n\t\r\n\t\r\nOUT = [allViews, params, doc.FamilyManager.Types]",
+      "VariableInputPorts": true,
+      "Id": "fb23a76944b94d3197270f189db9e45b",
+      "Inputs": [
+        {
+          "Id": "b99918ed25d54775b3abea9a1540e98d",
+          "Name": "IN[0]",
+          "Description": "Input #0",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "b661c3ebd801441a9a8b5882dfceaef5",
+          "Name": "OUT",
+          "Description": "Result of the python script",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Runs an embedded IronPython script."
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Watch, CoreNodeModels",
+      "NodeType": "ExtensionNode",
+      "Id": "dfd9973243c14a808a8f9e34cad8a8e7",
+      "Inputs": [
+        {
+          "Id": "81ea657632c94cf598ecb9f12f3e2177",
+          "Name": "",
+          "Description": "Node to evaluate.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "0bddf5fe5afe4de9a6c88e12518055bb",
+          "Name": "",
+          "Description": "Watch contents.",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Visualize the output of node."
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "e[3];",
+      "Id": "4ba455defdf544e49f1036481b595feb",
+      "Inputs": [
+        {
+          "Id": "67026601c5ea446db803e9778977d3cd",
+          "Name": "e",
+          "Description": "e",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "37f5425379cb4412b12ae02ff95ab774",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.ZeroTouch.DSFunction, DynamoCore",
+      "NodeType": "FunctionNode",
+      "FunctionSignature": "Revit.Elements.Element.Name",
+      "Id": "e3c8f05c22544d27bd8e027a63bc00b0",
+      "Inputs": [
+        {
+          "Id": "51c3deb0e0b340269d2d958cad43c874",
+          "Name": "element",
+          "Description": "Revit.Elements.Element",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "036b83e466b64c44a448061c0d4ee193",
+          "Name": "string",
+          "Description": "string",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Auto",
+      "Description": "Get the Name of the Element\n\nElement.Name: string"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "f[2];",
+      "Id": "4da13f9e34384981a2d3a2abb96fd6ec",
+      "Inputs": [
+        {
+          "Id": "8f842c81145f4a3b90ea4634d21add15",
+          "Name": "f",
+          "Description": "f",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "d467e24451774994a0701ab5f8146a11",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "Dynamo.Graph.Nodes.CodeBlockNodeModel, DynamoCore",
+      "NodeType": "CodeBlockNode",
+      "Code": "f[2];",
+      "Id": "85920b10da41419197253085ca24581a",
+      "Inputs": [
+        {
+          "Id": "3b14aacd5e0f4a11aaa860c2cf4b50f0",
+          "Name": "f",
+          "Description": "f",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Outputs": [
+        {
+          "Id": "149e5e9b96e04436be2b737abef2a327",
+          "Name": "",
+          "Description": "Value of expression at line 1",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows for DesignScript code to be authored directly"
+    },
+    {
+      "ConcreteType": "CoreNodeModels.Input.Directory, CoreNodeModels",
+      "HintPath": "D:\\Xavier\\SUMMONIDEA\\BLOGGING\\summon-family-browser\\src",
+      "InputValue": "D:\\Xavier\\SUMMONIDEA\\BLOGGING\\summon-family-browser\\src",
+      "NodeType": "ExtensionNode",
+      "Id": "f458cfb369014a6681fbeb1711550c7a",
+      "Inputs": [],
+      "Outputs": [
+        {
+          "Id": "1373a5062ac8404394d39c1cc644c1de",
+          "Name": "",
+          "Description": "Directory",
+          "UsingDefaultValue": false,
+          "Level": 2,
+          "UseLevels": false,
+          "KeepListStructure": false
+        }
+      ],
+      "Replication": "Disabled",
+      "Description": "Allows you to select a directory on the system to get its path"
+    }
+  ],
+  "Connectors": [
+    {
+      "Start": "0474f2c40623417996dae9e89a047d8c",
+      "End": "49e622aa5b70486f97ccc4ada93e1ff1",
+      "Id": "fba589f385e54ecab4642d315925ae64"
+    },
+    {
+      "Start": "0474f2c40623417996dae9e89a047d8c",
+      "End": "ca65393606494bf49f4ccfcd2ef6f841",
+      "Id": "8a9c2a634c9e4de6848bf341ce113791"
+    },
+    {
+      "Start": "0474f2c40623417996dae9e89a047d8c",
+      "End": "7467835857344da188377c6e9ee9e56e",
+      "Id": "6191dadef5464b5fae061946645fa8eb"
+    },
+    {
+      "Start": "a2b59ef23a2943f59d62e781a7321565",
+      "End": "1c4ed22239f04e75bc8da14dabd85313",
+      "Id": "af2847a9bba94f3e9500731bf9cbe593"
+    },
+    {
+      "Start": "a2b59ef23a2943f59d62e781a7321565",
+      "End": "65bf9109ddb144cd90624cd8454f6f7d",
+      "Id": "81691d150b8a4393ad438ba3012a988d"
+    },
+    {
+      "Start": "5daca0a59ba04736a02ac264bc20828a",
+      "End": "f012edc734df4881bf9b9aedf747b3b5",
+      "Id": "522f59161c174895862106c306cfb308"
+    },
+    {
+      "Start": "fe42a78312ae429bbfc31596f31672c5",
+      "End": "67026601c5ea446db803e9778977d3cd",
+      "Id": "7a65bab2a40544a283e7351af68dc154"
+    },
+    {
+      "Start": "fe42a78312ae429bbfc31596f31672c5",
+      "End": "81ea657632c94cf598ecb9f12f3e2177",
+      "Id": "d6fb8905d21a44ecb9a6610ccc574585"
+    },
+    {
+      "Start": "4c6bcc9c59c3404e9f69d3db5abc4677",
+      "End": "c1884b03c54446c28e868c186f6cfcc4",
+      "Id": "d822fd112e3c417bacf58c6de99828ba"
+    },
+    {
+      "Start": "5d86c6cb473440bba57a27422f33c7ec",
+      "End": "1a39829fbe6c4f8d856ea074f26aa43f",
+      "Id": "245f9fd0eb124657afcb86364f89473a"
+    },
+    {
+      "Start": "5d86c6cb473440bba57a27422f33c7ec",
+      "End": "175995ec1fbb44c6b0dae29d17c11b4d",
+      "Id": "d0dd7e4da7fe40ab937a142773b70459"
+    },
+    {
+      "Start": "5d86c6cb473440bba57a27422f33c7ec",
+      "End": "8f842c81145f4a3b90ea4634d21add15",
+      "Id": "5ed58a7eff284960afeab78db75a7512"
+    },
+    {
+      "Start": "f2c368aa58d7486493b3ebc70b446a40",
+      "End": "3b14aacd5e0f4a11aaa860c2cf4b50f0",
+      "Id": "084193c047fd4d17880026a92dcb7aa5"
+    },
+    {
+      "Start": "f2c368aa58d7486493b3ebc70b446a40",
+      "End": "ffe0520a7b934fd7b77aebb32905a801",
+      "Id": "e7011969dd0446abb5959db7cf22ded2"
+    },
+    {
+      "Start": "ff3a425a83b84fa480c9d0ba68a99c7a",
+      "End": "052ca545792740cfac154e188e30d21f",
+      "Id": "65ffd06cf6ee4badb60bd45b6a0ec02c"
+    },
+    {
+      "Start": "428062d98db34e438608ed9ead521881",
+      "End": "a11426e9fc8149958cefb0196b3f26a2",
+      "Id": "b4998fe5c6224417b85478d057e67c86"
+    },
+    {
+      "Start": "433dd75e6c7a4429aed3db48407d0c57",
+      "End": "0a180d67aa444672996389536a65726f",
+      "Id": "0c3c86ad8b5d4b9a9f19522099082d26"
+    },
+    {
+      "Start": "37f5425379cb4412b12ae02ff95ab774",
+      "End": "51c3deb0e0b340269d2d958cad43c874",
+      "Id": "cd8b55dc13914c93b3c87db84bfbdb20"
+    },
+    {
+      "Start": "1373a5062ac8404394d39c1cc644c1de",
+      "End": "d781f6b12b444dc5b13672eebb7a4010",
+      "Id": "09f1780864b74b73a78ebd74978799fa"
+    }
+  ],
+  "Dependencies": [],
+  "NodeLibraryDependencies": [],
+  "Bindings": [],
+  "View": {
+    "Dynamo": {
+      "ScaleFactor": 1.0,
+      "HasRunWithoutCrash": true,
+      "IsVisibleInDynamoLibrary": true,
+      "Version": "2.3.0.5885",
+      "RunType": "Manual",
+      "RunPeriod": "1000"
+    },
+    "Camera": {
+      "Name": "Background Preview",
+      "EyeX": -17.0,
+      "EyeY": 24.0,
+      "EyeZ": 50.0,
+      "LookX": 12.0,
+      "LookY": -13.0,
+      "LookZ": -58.0,
+      "UpX": 0.0,
+      "UpY": 1.0,
+      "UpZ": 0.0
+    },
+    "NodeViews": [
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "b8c28a0cf8fb4e919a5076d8667f01a0",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": true,
+        "X": 2127.4624311260914,
+        "Y": 309.50158410770518
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "INPUT RFA FAMILIES",
+        "Id": "1a049fd025df4ccaa93b0510d5b38267",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -409.76871867157115,
+        "Y": 291.35800839033493
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "FileSystem.GetDirectoryContents",
+        "Id": "f88c1dc6eb77448baa25de9ef6a59441",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 199.73777791123274,
+        "Y": 469.47431245309252
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Directory.FromPath",
+        "Id": "d4462bbf838843eebaa0c0935aff01ee",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 4.9043187458866555,
+        "Y": 421.29693813322973
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "EXPORT FBX AND FAMILY PARAMETERS",
+        "Id": "15d2a70d9d0b48ada231f3bb30c7fd43",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 1362.801310483175,
+        "Y": 1003.935188656279
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "String from Object",
+        "Id": "dc7204c6581e43b49eab2b0eba9b961f",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 733.30072665573778,
+        "Y": 333.13480054768547
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "List.Flatten",
+        "Id": "ac173191fdbd423f928732b311fba572",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 969.78486143249165,
+        "Y": 333.4573500546453
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "FileSystem.FileName",
+        "Id": "21f125a2d8dd4410ba85eea6d17185b4",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 709.18488293938071,
+        "Y": 1040.2662105133459
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Boolean",
+        "Id": "99e0e10a3eeb4cd897318941e7be0822",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 4.7791731831931088,
+        "Y": 596.11346337769351
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "6937b6998e154a5f8a259154ad8d8e8f",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": true,
+        "X": 2117.0001503876897,
+        "Y": 128.69652007822086
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "ded51fb1a93940d08a5cd7d7c8b6d5d8",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 6.3318818137684616,
+        "Y": 507.20207923861796
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "7b605fcbcde1428a8023b155680710ed",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -432.7182010157868,
+        "Y": 472.2076355732242
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "OUTPUT FBX FAMILIES",
+        "Id": "c92032067dcb43b586ffea52034625ac",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -422.28890864149355,
+        "Y": 745.82223489559976
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Python Script",
+        "Id": "fb23a76944b94d3197270f189db9e45b",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": true,
+        "X": 2119.62641535313,
+        "Y": 435.84254533858638
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Watch",
+        "Id": "dfd9973243c14a808a8f9e34cad8a8e7",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 1719.2475168372907,
+        "Y": 1003.1556066442056
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "4ba455defdf544e49f1036481b595feb",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": true,
+        "X": 1450.8369523450215,
+        "Y": 579.57374646790936
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Element.Name",
+        "Id": "e3c8f05c22544d27bd8e027a63bc00b0",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": true,
+        "X": 1751.7828727294639,
+        "Y": 574.69483221153882
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "4da13f9e34384981a2d3a2abb96fd6ec",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 1154.4268163283789,
+        "Y": 966.33416131659374
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "Code Block",
+        "Id": "85920b10da41419197253085ca24581a",
+        "IsSetAsInput": false,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": 1154.9843233280774,
+        "Y": 1111.2829183522867
+      },
+      {
+        "ShowGeometry": true,
+        "Name": "OUTPUT JSON",
+        "Id": "f458cfb369014a6681fbeb1711550c7a",
+        "IsSetAsInput": true,
+        "IsSetAsOutput": false,
+        "Excluded": false,
+        "X": -422.28890864149355,
+        "Y": 930.18664269464932
+      }
+    ],
+    "Annotations": [],
+    "X": -420.45728548441548,
+    "Y": -190.38465730093583,
+    "Zoom": 0.66278172453841744
+  }
+}
