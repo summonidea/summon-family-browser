@@ -5,8 +5,8 @@ import { FBXLoader } from 'https://cdn.skypack.dev/three/examples/jsm/loaders/FB
 //READ JSON FILE
 async function loadJson() {
     try {
-        let res = await fetch('https://raw.githubusercontent.com/summonidea/summon-family-browser/master/src/family_data.json')
         // let res = await fetch('./../src/family_data.json')
+        let res = await fetch('src/family_data.json')
         return await res.json();
     } catch (error) {
         console.log(error)
@@ -55,7 +55,8 @@ function loadModel(family, index) {
     console.log(fbxLoader);
     fbxLoader.crossOrigin = '';
     fbxLoader.load(
-        './../src/output_families/' + family.family_name + '.fbx',
+        // './../src/output_families/' + family.family_name + '.fbx',
+        'src/output_families/' + family.family_name + '.fbx',
         (object) => {
 
             

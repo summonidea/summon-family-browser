@@ -2,8 +2,8 @@
 //READ JSON FILE
 async function loadJson() {
     try {
-        let res = await fetch('https://raw.githubusercontent.com/summonidea/summon-family-browser/master/src/family_data.json')
         // let res = await fetch('./../src/family_data.json')
+        let res = await fetch('src/family_data.json')
         return await res.json();
     } catch (error) {
         console.log(error)
