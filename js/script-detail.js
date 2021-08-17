@@ -52,8 +52,10 @@ function loadModel(family, index) {
     
     //FBX Loader
     const fbxLoader = new FBXLoader()
+    console.log(fbxLoader);
+    fbxLoader.crossOrigin = '';
     fbxLoader.load(
-        '../src/output_families/' + family.family_name + '.fbx',
+        './../src/output_families/' + family.family_name + '.fbx',
         (object) => {
 
             
